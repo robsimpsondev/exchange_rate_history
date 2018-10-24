@@ -52,3 +52,6 @@ build-iPhoneSimulator/
 # irb settings, history, etc
 .irbrc
 .irb_history
+
+# temp files
+*~
