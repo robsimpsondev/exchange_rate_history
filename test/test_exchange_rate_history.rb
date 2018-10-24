@@ -11,7 +11,7 @@ class ExchangeRateHistoryTest < Minitest::Test
     # nothing
   end
 
-  def test_io_with_default_source
+  def test_output_with_default_source
     out, err = capture_io do
       ExchangeRateHistory.puts_rate
     end
@@ -19,7 +19,7 @@ class ExchangeRateHistoryTest < Minitest::Test
     assert_equal "1.00\n", out 
   end
 
-  def test_io_unknown_source
+  def test_output_with_unknown_source
     out, err = capture_io do
       ExchangeRateHistory.puts_rate "unknown_source"
     end
