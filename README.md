@@ -7,8 +7,7 @@ Ruby gem for storing and calculating historical exchange rates. Integrates with 
 Developed for quick building in Unix. Tested on Ubuntu 18.04.
 
 ```
-$ bundle #TODO
-$ rake   #TODO
+$ rake
 ```
 
 
@@ -17,7 +16,7 @@ $ rake   #TODO
 Tests are ran on installation and can be re-ran using `rake`, i.e.
 
 ```
-$ rake
+$ rake test
 ```
 
 
