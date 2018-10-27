@@ -4,7 +4,7 @@ Ruby gem for storing and calculating historical exchange rates. Integrates with 
 
 ## Deployment
 
-Developed for easy builds in Unix. Tested on Ubuntu 18.04. This will attempt to install to the exisitng system ruby installation (requires super user priveleges).
+Developed for easy builds in Unix. Tested on Ubuntu 18.04. This will attempt to install to the exisitng system Ruby installation (requires super user priveleges).
 
 ```
 $ rake
