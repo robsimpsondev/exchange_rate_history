@@ -38,13 +38,13 @@ irb> dates_with_rates = ExchangeRateHistory.from(Date.today - #FOO, Date.today, 
 
 ## Data sources, storage and normalization
 
-There is a class whose objects contains a single source of exchange rates called `ExchangeRateHistory::Source`, which by default is the (ECB 90-day feed)[https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml]. Each source is implemented as a sub-class, for example `class ECB90DayFeed < ExchangeRateHistory::Source ... end`.
+There is a class whose objects contains a single source of exchange rates called `ExchangeRateHistory::Source`, which by default is the [ECB 90-day feed](https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml). Each source is implemented as a sub-class, for example teh default is defined `class ECB90DayFeed < ExchangeRateHistory::Source ... end`.
 
 The ECB source has a base currency of EUR, to which all other rates are relative.
 
-If an alternative data provider is used the source `base_currency` must be set appropriately, so there is no default provided for object initialization in the `Source` class.
+If an alternative data provider is used the source `base_currency` must be set appropriately.
 
-For a Source object to work the following must be defined:
+For a Source object to work the following must methods be defined:
 ```
 irb> source = ExchangeRateHistory::Source.new(source_uri, abs_local_file_path, base_currency)  # initialize
 irb> source.check_local   # check for abs_local_file_path
