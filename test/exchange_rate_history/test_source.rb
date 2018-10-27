@@ -5,14 +5,15 @@ class SourceTest < Minitest::Test
 
   def setup
     # set up source for testing
-    abs_local_file_path = File.dirname(__FILE__) + '/source_fixtures/test_data.xml'
+    abs_local_file_path = File.dirname(__FILE__)
+    abs_local_file_path += '/source_fixtures/test_data.xml'
     @source = ExchangeRateHistory::Source.new(
-      abs_local_file_path: abs_local_file_path,
+      abs_local_file_path: abs_local_file_path
     )
   end
 
   def teardown
-    # nothing
+    # nothing to do
   end
 
   def test_check_local_true_for_existing_file
@@ -20,7 +21,9 @@ class SourceTest < Minitest::Test
   end
 
   def test_check_local_raises_for_nonexistant_file
-    bad_local_source = ExchangeRateHistory::Source.new(abs_local_file_path: 'a/file/that/doesnt_exist/anywhere_at.all')
+    bad_local_source = ExchangeRateHistory::Source.new(
+      abs_local_file_path: 'a/file/that/doesnt_exist/anywhere_at.all'
+    )
     assert_raises(LocalSourceNotFoundError) do
       bad_local_source.check_local
     end
