@@ -4,7 +4,7 @@ Ruby gem for storing and calculating historical exchange rates. Integrates with 
 
 ## Deployment
 
-Developed for quick building in Unix. Tested on Ubuntu 18.04.
+Developed for easy builds in Unix. Tested on Ubuntu 18.04. This will attempt to install to the exisitng system ruby installation (requires super user priveleges).
 
 ```
 $ rake
@@ -37,13 +37,13 @@ irb> dates_with_rates = ExchangeRateHistory.from(Date.today - #FOO, Date.today, 
 
 ## Data sources, storage and normalization
 
-There is a class whose objects contains a single source of exchange rates called `ExchangeRateHistory::Source`, which by default is the [ECB 90-day feed](https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml). Each source is implemented as a sub-class, for example teh default is defined `class ECB90DayFeed < ExchangeRateHistory::Source ... end`.
+There is a class whose objects contains a single source of exchange rates called `ExchangeRateHistory::Source`, which by default is the [ECB 90-day feed](https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml). Each source is implemented as a sub-class, for example the default is defined `class ECB90DayFeed < ExchangeRateHistory::Source ... end`.
 
 The ECB source has a base currency of EUR, to which all other rates are relative.
 
 If an alternative data provider is used the source `base_currency` must be set appropriately.
 
-For a Source object to work the following must methods be defined:
+For a `Source` object to work the following must methods be defined:
 ```
 irb> source = ExchangeRateHistory::Source.new(source_uri, abs_local_file_path, base_currency)  # initialize
 irb> source.check_local   # check for abs_local_file_path
@@ -54,7 +54,7 @@ irb> source.update        # updates the cache using source_uri file data
 irb> source.save          # writes cached data to abs_local_file_path
 ```
 
-The default source looks for an .xml file at the source uri and parses it into memory. A new file is created called `<Source.name>_exchange_rate_data.xml` from which data will be loaded first during source initialization, if possible.
+The default source looks for a data file at the source uri and parses it into memory. A new file is created called `<Source.name>_exchange_rate_data.xml` from which data will be loaded first during source initialization, if possible.
 
 Each source object must also have a `:rate_parser` method defined, that reads the data and returns a Hash of the form
 ```
