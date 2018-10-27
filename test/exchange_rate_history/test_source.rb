@@ -4,14 +4,26 @@ require 'exchange_rate_history/source'
 class SourceTest < Minitest::Test
 
   def setup
-    # nothing
+    # set up source for testing
+    abs_local_file_path = File.dirname(__FILE__) + '/source_fixtures/test_data.xml'
+    @source = ExchangeRateHistory::Source.new(
+      abs_local_file_path: abs_local_file_path,
+    )
   end
 
   def teardown
     # nothing
   end
 
-  def test_check_local_works_for_exisiting_file
+  def test_check_local_true_for_existing_file
+    assert @source.check_local
+  end
+
+  def test_check_local_raises_for_nonexistant_file
+    bad_local_source = ExchangeRateHistory::Source.new(abs_local_file_path: 'a/file/that/doesnt_exist/anywhere_at.all')
+    assert_raises(LocalSourceNotFoundError) do
+      bad_local_source.check_local
+    end
   end
 
   def test_check_local_file_not_found_checks_remote

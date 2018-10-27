@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
   s.description = "A ruby gem for storing and calculating foreign exchange rates. Integrates with the Money gem. This implementation uses 90-day FX rate data, published daily by the ECB."
   s.authors     = ["Rob Simpson"]
   s.email       = 'robsimpsondev@gmail.com'
-  s.files       = ["lib/exchange_rate_history.rb", "lib/exchange_rate_history/rate_finder.rb"]
+  s.files       = ["lib/exchange_rate_history.rb", "lib/exchange_rate_history/source.rb"]
   s.homepage    =
     'http://rubygems.org/gems/exchange_rate_history'
   s.license       = 'MIT'

@@ -1,8 +1,17 @@
-require 'rake/testtask'
+task default: [:build, :install, :test]
 
-Rake::TestTask.new do |t|
-  t.libs << 'test'
+# Specifiy version to install from .gem
+VERSION = "0.0.1"
+
+task :build do
+  `gem build exchange_rate_history.gemspec`
 end
 
-desc "Run tests"
-task :default => :test
+task :install do
+  `sudo gem install exchange_rate_history-#{VERSION}.gem`
+end
+
+task :test do
+  ruby "test/test_exchange_rate_history.rb"
+  ruby "test/exchange_rate_history/test_source.rb"
+end
