@@ -1,42 +1,84 @@
-require 'exchange_rate_history'
 require 'pathname'
+require 'resolv'
+require 'net/http'
+require 'open-uri'
+
+require 'exchange_rate_history'
 
 
 # TODO: Factor out into default source class
-DEFAULT_SOURCE = 'www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml'
+DEFAULT_SOURCE = 'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml'
 DEFAULT_LOCAL_PATH = File.dirname(__FILE__) + 'DEFAULT_SOURCE.xml'
+
+
+def internet_connection?
+  dns_resolver = Resolv::DNS.new()
+  begin
+    dns_resolver.getaddress("symbolics.com")  # First ever registered domain name
+  rescue Resolv::ResolvError => e
+    return false
+  end
+  return true
+end
+
+
+def remote_file_available?(url)
+  url = URI.parse(url)
+  http = Net::HTTP.new(url.host, url.port)
+  http.use_ssl = (url.scheme == "https")
+  http.start do |http|
+    return http.head(url.request_uri).code == "200"
+  end
+end
 
 
 class SourceError < RuntimeError
 end
 
+
 class LocalSourceNotFoundError < SourceError
 end
 
 
+class RemoteSourceError < SourceError
+end
+
+
+class InternetConnectionError < RuntimeError
+end
+
+
 class ExchangeRateHistory::Source
+
+  attr_reader :source_url, :abs_local_file_path, :base_cuurency, :local_file_flag, :remote_file_flag
+
   def initialize(
-    source_uri: DEFAULT_SOURCE,
+    source_url: DEFAULT_SOURCE,
     abs_local_file_path: DEFAULT_LOCAL_PATH,
     base_currency: 'EUR')
 
-    @source_uri = source_uri
+    @source_url = source_url
     @abs_local_file_path = abs_local_file_path
     @base_currency = base_currency
 
-    @local_file = nil  # to be determined T/F
-    @remote_file = nil
+    @local_file_flag = nil  # to be determined T/F
+    @remote_file_flag = nil  # to be determined T/F
 
-    # First check for a local file
-    # If it doesn't exist look for a remote
+    # There may not be a local file yet
     begin
-      if check_local
-        @local_file = true
-      end
+      check_local
     rescue LocalSourceNotFoundError => ex
-      @local_file = false
-      if check_remote
-        @remote_file = true
+      puts "Data file not found during initialiazation"
+    end
+
+    # We may not be able to reach to remote source.
+    # Only Ok if we have a local file.
+    begin
+      check_remote
+    rescue RemoteSourceError => ex
+      $stderr.puts "Remote source could not be reached during initialization"
+      unless @local_file_flag
+        raise "Neither local nor remote data could be accessed"
       end
     end
 
@@ -45,22 +87,35 @@ class ExchangeRateHistory::Source
   def check_local
     pn = Pathname.new(@abs_local_file_path)
     if pn.exist?
+      @local_file_flag = true
       return true
     else
-      raise LocalSourceNotFoundError, "local file not found during Source initialization"
+      @local_file_flag = false
+      raise LocalSourceNotFoundError, "local data file not found"
     end
   end
 
   def check_remote
-    true
+    raise InternetConnectionError unless internet_connection?
+    begin
+      if remote_file_available?(@source_url)
+        @remote_file_flag = true
+        return true
+      else
+        @remote_file_flag = false
+        raise RemoteSourceError, "Remote source response failed (was not 200)"
+      end
+    rescue SocketError => ex
+      raise RemoteSourceError, "#{ex}"
+    end
   end
 
-  def find_rate
-    case @source
-    when nil
-      "1.00"
+  def get
+    if @remote_file_flag
+      url = URI.parse(@source_url)
+      @response = Net::HTTP.get_response(url)
     else
-      "rate source not found"
+      raise "get called for Source with bad remote"
     end
   end
 end
