@@ -121,14 +121,6 @@ class SourceTest < Minitest::Test
   end
 
 
-  def test_rate_parser_succeeds_on_good_remote_file
-  end
-
-
-  def test_rate_parser_fails_with_bad_data_raises_remote_source_error
-  end
-
-
   def test_rate_parser_succeeds_on_good_local_file
   end
 
