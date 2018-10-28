@@ -65,6 +65,7 @@ class ExchangeRateHistory::Source
     @remote_file_flag = nil  # to be determined T/F
 
     # There may not be a local file yet
+    # and that is OK.
     begin
       check_local
     rescue LocalSourceNotFoundError => ex
@@ -72,7 +73,7 @@ class ExchangeRateHistory::Source
     end
 
     # We may not be able to reach to remote source.
-    # Only Ok if we have a local file.
+    # This is only Ok if we have a local file.
     begin
       check_remote
     rescue RemoteSourceError => ex
@@ -128,4 +129,5 @@ class ExchangeRateHistory::Source
     # or, for an example:
     #  - ./sources/ECB90Day.rb
   end
+  
 end

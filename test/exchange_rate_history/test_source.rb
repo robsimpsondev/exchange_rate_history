@@ -17,9 +17,6 @@ TEST_ABS_LOCAL_FILE_PATH = this_files_dir + '/source_fixtures/test_data.xml'
 
 # Temporarily redirects STDOUT and STDERR to /dev/null
 # but does print exceptions should there occur any.
-# Call as:
-#   suppress_output { puts 'never printed' }
-#
 def suppress_output
   original_stdout, original_stderr = $stdout.clone, $stderr.clone
   $stderr.reopen File.new('/dev/null', 'w')
