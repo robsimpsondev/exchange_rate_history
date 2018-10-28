@@ -56,7 +56,7 @@ irb> source.save          # writes cached data to abs_local_file_path
 
 The default source looks for a data file at the source uri and parses it into memory. A new file is created called `<Source.name>_exchange_rate_data.xml` from which data will be loaded first during source initialization, if possible.
 
-Each source object must also have a `:rate_parser` method defined, that reads the data and returns a Hash of the form
+Each source object must also have a `:source_rate_parser` method defined, that reads the data and returns a Hash of the form
 ```
 => {'date_str1' => {'GBP' => 0.9, 'USD' => 1.1, 'XXX' => 100.123, ... },
 ... 'date_str2' => {'GBP' => 0.9, 'USD' => 1.1, 'XXX' => 100.123, ... },

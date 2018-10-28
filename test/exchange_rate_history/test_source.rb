@@ -1,12 +1,10 @@
 require 'resolv'
-
 require 'minitest/autorun'
 
 require 'exchange_rate_history/source'
 
 
 # TODO: remove network dependency from testing and stub relevent libraries
-# TODO: redirect stderr to log for bad inits
 
 
 # Make sure the following file exists before testing

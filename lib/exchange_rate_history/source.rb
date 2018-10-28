@@ -50,7 +50,7 @@ end
 
 class ExchangeRateHistory::Source
 
-  attr_reader :source_url, :abs_local_file_path, :base_cuurency, :local_file_flag, :remote_file_flag
+  attr_reader :source_url, :abs_local_file_path, :base_cuurency, :local_file_flag, :remote_file_flag, :response
 
   def initialize(
     source_url: DEFAULT_SOURCE,
@@ -117,5 +117,15 @@ class ExchangeRateHistory::Source
     else
       raise "get called for Source with bad remote"
     end
+  end
+
+  def source_rate_parser()
+    raise NotImplementedError, "Sources must have a :source_rate_parser method defined"
+    # see:
+    #  - README.md
+    # or:
+    #  - https://github.com/robsimpsondev/exchange_rate_history/blob/master/README.md
+    # or, for an example:
+    #  - ./sources/ECB90Day.rb
   end
 end

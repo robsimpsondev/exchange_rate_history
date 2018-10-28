@@ -14,4 +14,5 @@ end
 task :test do
   ruby "test/test_exchange_rate_history.rb"
   ruby "test/exchange_rate_history/test_source.rb"
+  ruby "test/exchange_rate_history/sources/test_ECB90Day.rb"
 end
