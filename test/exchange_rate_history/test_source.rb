@@ -14,6 +14,25 @@ this_files_dir = File.dirname(__FILE__)
 TEST_ABS_LOCAL_FILE_PATH = this_files_dir + '/source_fixtures/test_data.xml'
 
 
+# Suppress stdout, stderr
+# https://gist.github.com/moertel/11091573
+
+# Temporarily redirects STDOUT and STDERR to /dev/null
+# but does print exceptions should there occur any.
+# Call as:
+#   suppress_output { puts 'never printed' }
+#
+def suppress_output
+  original_stdout, original_stderr = $stdout.clone, $stderr.clone
+  $stderr.reopen File.new('/dev/null', 'w')
+  $stdout.reopen File.new('/dev/null', 'w')
+  yield
+ensure
+  $stdout.reopen original_stdout
+  $stderr.reopen original_stderr
+end
+
+
 class SourceTest < Minitest::Test
 
   def setup
@@ -35,9 +54,11 @@ class SourceTest < Minitest::Test
 
 
   def test_check_local_raises_for_nonexistant_file
-    bad_local_source = ExchangeRateHistory::Source.new(
+    bad_local_source = suppress_output do
+      ExchangeRateHistory::Source.new(
       abs_local_file_path: 'a/file/that/doesnt_exist/anywhere_at.all'
-    )
+      )
+    end
     assert_raises(LocalSourceNotFoundError) do
       bad_local_source.check_local
     end
@@ -61,10 +82,12 @@ class SourceTest < Minitest::Test
 
 
   def test_check_remote_fails_causes_remote_source_error
-    bad_remote_source = ExchangeRateHistory::Source.new(
-      abs_local_file_path: TEST_ABS_LOCAL_FILE_PATH,
-      source_url:          'https://this/doesnt/exist/file.RANDOM_10375617'
-    )
+    bad_remote_source = suppress_output do
+      ExchangeRateHistory::Source.new(
+        abs_local_file_path: TEST_ABS_LOCAL_FILE_PATH,
+        source_url:          'https://this/doesnt/exist/file.RANDOM_10375617'
+      )
+    end
     assert_raises(RemoteSourceError) do
       bad_remote_source.check_remote
     end
@@ -72,9 +95,11 @@ class SourceTest < Minitest::Test
 
 
   def test_check_local_file_not_found_checks_remote
-    no_local_source = ExchangeRateHistory::Source.new(
-      abs_local_file_path: TEST_ABS_LOCAL_FILE_PATH + "_no_such_file"
-    )
+    no_local_source = suppress_output do
+      ExchangeRateHistory::Source.new(
+        abs_local_file_path: TEST_ABS_LOCAL_FILE_PATH + "_no_such_file"
+      )
+    end
     assert_equal false, no_local_source.local_file_flag
     assert_equal true, no_local_source.remote_file_flag
   end
@@ -86,10 +111,12 @@ class SourceTest < Minitest::Test
 
 
   def test_get_fails_returns_error
-    bad_remote_source = ExchangeRateHistory::Source.new(
-      abs_local_file_path: TEST_ABS_LOCAL_FILE_PATH,
-      source_url: 'https://this/doesnt/exist/file.RANDOM_10375617'
-    )
+    bad_remote_source = suppress_output do
+      ExchangeRateHistory::Source.new(
+        abs_local_file_path: TEST_ABS_LOCAL_FILE_PATH,
+        source_url: 'https://this/doesnt/exist/file.RANDOM_10375617'
+      )
+    end
     assert_raises(Exception) do
       bad_remote_source.get
     end
