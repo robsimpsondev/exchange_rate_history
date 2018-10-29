@@ -12,11 +12,9 @@ this_files_dir = File.dirname(__FILE__)
 TEST_ABS_LOCAL_FILE_PATH = this_files_dir + '/source_fixtures/test_data.xml'
 
 
-# Suppress stdout, stderr
-# https://gist.github.com/moertel/11091573
-
 # Temporarily redirects STDOUT and STDERR to /dev/null
 # but does print exceptions should there occur any.
+# https://gist.github.com/moertel/11091573
 def suppress_output
   original_stdout, original_stderr = $stdout.clone, $stderr.clone
   $stderr.reopen File.new('/dev/null', 'w')
@@ -126,24 +124,27 @@ class SourceTest < Minitest::Test
   end
 
 
-  def test_update_from_zero_cached_data
+  def test_load_into_cache_starting_with_empty_cache
   end
 
 
-  def test_update_cache_with_existing_data
+  def test_load_into_cache_with_populated_cache_same_data
   end
 
 
-  def test_update_with_bad_data_raises_remote_source_error
+  def test_load_into_cache_with_populated_cache_new_data
   end
 
 
-  def test_save_existing_data_with_new_data
+  def test_save_feed_data_with_empty_store
   end
 
 
-  def test_save_existing_data_with_old_data_no_change
+  def test_save_feed_data_with_poopulated_store_same_data
   end
+
+
+  def test_save_feed_data_populated_store_new_data
 
 
   def test_init_default_source_for_test_no_errors
@@ -154,7 +155,7 @@ class SourceTest < Minitest::Test
   end
 
 
-  def test_init_default_no_connection_no_exisiting_file__causes_error_and_useful_message
+  def test_init_default_no_connection_no_exisiting_file_causes_error_and_useful_message
   end
 
 end
