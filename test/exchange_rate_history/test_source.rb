@@ -13,7 +13,7 @@ TEST_ABS_LOCAL_FILE_PATH = this_files_dir + '/source_fixtures/test_data.xml'
 
 
 # Temporarily redirects STDOUT and STDERR to /dev/null
-# but does print exceptions should there occur any.
+# but does print exceptions should they occur.
 # https://gist.github.com/moertel/11091573
 def suppress_output
   original_stdout, original_stderr = $stdout.clone, $stderr.clone
@@ -29,9 +29,7 @@ end
 class SourceTest < Minitest::Test
 
   def setup
-    @source = ExchangeRateHistory::Source.new(
-      abs_local_file_path: TEST_ABS_LOCAL_FILE_PATH
-    )
+    # nothing to do
   end
 
 
@@ -41,8 +39,11 @@ class SourceTest < Minitest::Test
 
 
   def test_check_local_true_for_existing_file
-    assert @source.check_local
-    assert @source.local_file_flag
+    source = ExchangeRateHistory::Source.new(
+      abs_local_file_path: TEST_ABS_LOCAL_FILE_PATH
+    )
+    assert source.check_local
+    assert source.local_file_flag
   end
 
 
@@ -59,10 +60,13 @@ class SourceTest < Minitest::Test
 
 
   def test_check_remote_success_returns_true
+    source = ExchangeRateHistory::Source.new(
+      abs_local_file_path: TEST_ABS_LOCAL_FILE_PATH
+    )
     # first check we have the internet for the tests
     if internet_connection?
-      assert @source.check_remote
-      assert @source.remote_file_flag
+      assert source.check_remote
+      assert source.remote_file_flag
     else
       raise "Cannot access DNS servers - are you connected to the internet?"
     end
@@ -99,7 +103,10 @@ class SourceTest < Minitest::Test
 
 
   def test_get_succeeds_with_good_remote_url
-    @source.get
+    source = ExchangeRateHistory::Source.new(
+      abs_local_file_path: TEST_ABS_LOCAL_FILE_PATH
+    )
+    source.get
   end
 
 
@@ -145,7 +152,8 @@ class SourceTest < Minitest::Test
 
 
   def test_save_feed_data_populated_store_new_data
-
+  end
+  
 
   def test_init_default_source_for_test_no_errors
   end
