@@ -5,15 +5,13 @@ require 'exchange_rate_history/sources/ECB90Day'
 
 
 this_files_dir = File.dirname(__FILE__)
-TEST_ABS_LOCAL_FILE_PATH = this_files_dir + '/../source_fixtures/test_data.xml'
+TEST_ABS_LOCAL_FILE_PATH = this_files_dir + '/../source_fixtures/ECB90Day_exchange_rate_data.json'
 
 
 class ECB90DayTest < Minitest::Test
 
   def setup
-    @source = ECB90Day.new(
-      abs_local_file_path: TEST_ABS_LOCAL_FILE_PATH
-    )
+    @source = ECB90Day.new
   end
 
 

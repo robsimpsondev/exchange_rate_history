@@ -2,13 +2,9 @@ require 'pathname'
 require 'resolv'
 require 'net/http'
 require 'open-uri'
+require 'json'
 
 require 'exchange_rate_history'
-
-
-# TODO: Factor out into default source class
-DEFAULT_SOURCE = 'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml'
-DEFAULT_LOCAL_PATH = File.dirname(__FILE__) + 'DEFAULT_SOURCE.xml'
 
 
 def internet_connection?
@@ -36,7 +32,11 @@ class SourceError < RuntimeError
 end
 
 
-class LocalSourceNotFoundError < SourceError
+class LocalSourceError < SourceError
+end
+
+
+class LocalSourceNotFoundError < LocalSourceError
 end
 
 
@@ -50,43 +50,29 @@ end
 
 class ExchangeRateHistory::Source
 
-  attr_reader :source_url, :abs_local_file_path, :base_cuurency, :local_file_flag, :remote_file_flag, :response
+  attr_reader :source_url, :local_store_abs_path, :base_currency, :local_file_flag, :remote_file_flag, :response, :cache
 
-  def initialize(
-    source_url: DEFAULT_SOURCE,
-    abs_local_file_path: DEFAULT_LOCAL_PATH,
-    base_currency: 'EUR')
+  def initialize(source_url, base_currency,  local_store_abs_path = nil)
 
     @source_url = source_url
-    @abs_local_file_path = abs_local_file_path
     @base_currency = base_currency
+    @cache = {}  # cache is a hash object, all external access to source data is through the cache
 
-    @local_file_flag = nil  # to be determined T/F
-    @remote_file_flag = nil  # to be determined T/F
-
-    # There may not be a local file yet
-    # and that is OK.
-    begin
-      check_local
-    rescue LocalSourceNotFoundError => ex
-      puts "Data file not found during initialiazation"
+    # Set the default store name in working directory
+    unless local_store_abs_path
+      @local_store_abs_path = Dir.pwd + "/" + "exchange_rate_data.json"
+    else
+      @local_store_abs_path = local_store_abs_path
     end
 
-    # We may not be able to reach to remote source.
-    # This is only Ok if we have a local file.
-    begin
-      check_remote
-    rescue RemoteSourceError => ex
-      $stderr.puts "Remote source could not be reached during initialization"
-      unless @local_file_flag
-        raise "Neither local nor remote data could be accessed"
-      end
-    end
-
+    @local_file_flag = nil    # to be determined T/F
+    @remote_file_flag = nil   # to be determined T/F
+    check_file_status         # sets the above flags
   end
 
+
   def check_local
-    pn = Pathname.new(@abs_local_file_path)
+    pn = Pathname.new(@local_store_abs_path)
     if pn.exist?
       @local_file_flag = true
       return true
@@ -95,6 +81,7 @@ class ExchangeRateHistory::Source
       raise LocalSourceNotFoundError, "local data file not found"
     end
   end
+
 
   def check_remote
     raise InternetConnectionError unless internet_connection?
@@ -111,6 +98,29 @@ class ExchangeRateHistory::Source
     end
   end
 
+
+  def check_file_status
+    # There may not be a local file.
+    # and that is OK.
+    begin
+      check_local
+    rescue LocalSourceNotFoundError => ex
+      $stderr.puts "Local data file not found."
+    end
+
+    # We may not be able to reach to remote source.
+    # This is only Ok if we have a local file.
+    begin
+      check_remote
+    rescue RemoteSourceError => ex
+      $stderr.puts "Remote source could not be reached."
+      unless @local_file_flag
+        raise "Neither local nor remote data could be accessed"
+      end
+    end
+  end
+
+
   def get
     if @remote_file_flag
       url = URI.parse(@source_url)
@@ -120,6 +130,7 @@ class ExchangeRateHistory::Source
     end
   end
 
+
   def source_rate_parser()
     raise NotImplementedError, "Sources must have a :source_rate_parser method defined"
     # see:
@@ -128,6 +139,40 @@ class ExchangeRateHistory::Source
     #  - https://github.com/robsimpsondev/exchange_rate_history/blob/master/README.md
     # or, for an example:
     #  - ./sources/ECB90Day.rb
+  end
+
+
+  def load_cache_from_store(store_file = @local_store_abs_path)
+    file_string_size = nil
+    begin
+      File.open(store_file, "r") do |f|
+        file_str = f.read
+        file_string_size = file_str.size
+        @cache.merge!(JSON.parse(file_str).to_hash)
+      end
+    rescue JSON::ParserError => ex
+      if file_string_size == 0
+        raise LocalSourceError, "Local file is empty: #{ex}"
+      else
+        raise LocalSourceError, "#{ex}"
+      end
+    end
+  end
+
+
+  def update_store
+  end
+
+
+  def update_cache
+    # Get the most up to date data that is reachable
+    if remote_file_flag
+      get
+      update_store
+      load_cache_from_store
+    else
+      load_cahe_from_store
+    end
   end
   
 end

@@ -10,4 +10,9 @@ Gem::Specification.new do |s|
   s.homepage    =
     'http://rubygems.org/gems/exchange_rate_history'
   s.license       = 'MIT'
+
+
+  s.add_development_dependency "rake", '~> 0'
+
+  s.add_runtime_dependency "activesupport", '~> 5'
 end
