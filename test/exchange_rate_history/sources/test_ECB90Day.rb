@@ -8,7 +8,8 @@ this_files_dir = File.dirname(__FILE__)
 TEST_ABS_LOCAL_FILE_PATH = this_files_dir + '/../source_fixtures/ECB90Day_exchange_rate_data.json'
 
 
-class ECB90DayTest < Minitest::Test
+class TestECB90Day < Minitest::Test
+
 
   def setup
     @source = ECB90Day.new
@@ -21,9 +22,10 @@ class ECB90DayTest < Minitest::Test
 
 
   def test_source_rate_parser
-    assert @source.check_remote
-    @source.get
-    assert_equal({}, @source.source_rate_parser(@source.response))
+    response = @source.get
+    data_hash = @source.source_rate_parser(response)
+    assert_equal Hash, data_hash.class
+    refute_empty data_hash
   end
 
 end

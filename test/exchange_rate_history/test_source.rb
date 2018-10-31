@@ -7,6 +7,13 @@ require 'exchange_rate_history/source'
 # TODO: remove network dependency from testing and stub relevent libraries
 
 
+# Stub method defined in child classes
+class ExchangeRateHistory::Source
+  def source_rate_parser(an_arg)
+    return {"test" => "hash"}
+  end
+end
+
 
 # Make sure the following file exists before testing
 this_files_dir = File.dirname(__FILE__)
@@ -34,7 +41,7 @@ ensure
 end
 
 
-class SourceTest < Minitest::Test
+class TestSource < Minitest::Test
 
   def setup
     # nothing to do
@@ -148,8 +155,8 @@ class SourceTest < Minitest::Test
       TEST_BASE_CURRENCY,
       TEST_ABS_LOCAL_FILE_PATH_GOOD_DATA
     )
-    source.load_cache_from_store
-    refute_empty source.cache
+    data_hash = source.load_from_store
+    refute_empty data_hash
   end
 
 
@@ -160,7 +167,7 @@ class SourceTest < Minitest::Test
       TEST_ABS_LOCAL_FILE_PATH_NO_DATA
     )
     assert_raises(LocalSourceError) do
-      source.load_cache_from_store
+      source.load_from_store
     end
   end
 
@@ -173,6 +180,7 @@ class SourceTest < Minitest::Test
         TEST_TEMP_FILE
       )
     end
+    source.update_store({"test" => "hash"})
     pn = Pathname.new(source.local_store_abs_path)
     assert_equal true, pn.exist?
     `rm #{TEST_TEMP_FILE}`
@@ -180,10 +188,56 @@ class SourceTest < Minitest::Test
 
 
   def test_save_feed_data_with_populated_store_same_data
+    # create temp file
+    File.open(TEST_TEMP_FILE, "w") do |f|
+      f << {"test" => "hash"}.to_json
+    end
+
+    # init object
+    source = ExchangeRateHistory::Source.new(
+      TEST_SOURCE_URL,
+      TEST_BASE_CURRENCY,
+      TEST_TEMP_FILE
+    )
+
+    # update with same data
+    source.update_store({"test" => "hash"})
+
+    # assert no change
+    file_contents = ""
+    File.open(TEST_TEMP_FILE, "r") do |f|
+      assert f.read == {"test" => "hash"}.to_json
+    end
+
+    # clean up
+    `rm #{TEST_TEMP_FILE}`
   end
 
+    
+  def test_save_feed_data_with_populated_store_add_data
+    # create temp file
+    File.open(TEST_TEMP_FILE, "w") do |f|
+      f << {"test" => "hash"}.to_json
+    end
 
-  def test_save_feed_data_populated_store_new_data
+    # init object
+    source = ExchangeRateHistory::Source.new(
+      TEST_SOURCE_URL,
+      TEST_BASE_CURRENCY,
+      TEST_TEMP_FILE
+    )
+
+    # update with same data
+    source.update_store({"second" => "hashhh"})
+
+    # assert no change
+    file_contents = ""
+    File.open(TEST_TEMP_FILE, "r") do |f|
+      assert f.read == {"test" => "hash", "second" => "hashhh"}.to_json
+    end
+
+    # clean up
+    `rm #{TEST_TEMP_FILE}`
   end
 
 

@@ -50,12 +50,12 @@ end
 
 class ExchangeRateHistory::Source
 
-  attr_reader :source_url, :local_store_abs_path, :base_currency, :local_file_flag, :remote_file_flag, :response, :cache
+  attr_reader :source_url, :local_store_abs_path, :source_counter_currency, :local_file_flag, :remote_file_flag, :response, :cache
 
-  def initialize(source_url, base_currency,  local_store_abs_path = nil)
+  def initialize(source_url, source_counter_currency,  local_store_abs_path = nil)
 
     @source_url = source_url
-    @base_currency = base_currency
+    @source_counter_currency = source_counter_currency
     @cache = {}  # cache is a hash object, all external access to source data is through the cache
 
     # Set the default store name in working directory
@@ -67,7 +67,7 @@ class ExchangeRateHistory::Source
 
     @local_file_flag = nil    # to be determined T/F
     @remote_file_flag = nil   # to be determined T/F
-    check_file_status         # sets the above flags
+    update_file_status         # sets the above flags
   end
 
 
@@ -99,7 +99,7 @@ class ExchangeRateHistory::Source
   end
 
 
-  def check_file_status
+  def update_file_status
     # There may not be a local file.
     # and that is OK.
     begin
@@ -107,7 +107,6 @@ class ExchangeRateHistory::Source
     rescue LocalSourceNotFoundError => ex
       $stderr.puts "Local data file not found."
     end
-
     # We may not be able to reach to remote source.
     # This is only Ok if we have a local file.
     begin
@@ -125,13 +124,14 @@ class ExchangeRateHistory::Source
     if @remote_file_flag
       url = URI.parse(@source_url)
       @response = Net::HTTP.get_response(url)
+      return response
     else
       raise "get called for Source with bad remote"
     end
   end
 
 
-  def source_rate_parser()
+  def source_rate_parser(source_response = @response)
     raise NotImplementedError, "Sources must have a :source_rate_parser method defined"
     # see:
     #  - README.md
@@ -139,16 +139,21 @@ class ExchangeRateHistory::Source
     #  - https://github.com/robsimpsondev/exchange_rate_history/blob/master/README.md
     # or, for an example:
     #  - ./sources/ECB90Day.rb
+    #
+    # This method should end with:
+    # return source_data_hash
+    return {}
   end
 
 
-  def load_cache_from_store(store_file = @local_store_abs_path)
+  def load_from_store(store_file = @local_store_abs_path)
     file_string_size = nil
+    data_hash = {}
     begin
       File.open(store_file, "r") do |f|
         file_str = f.read
         file_string_size = file_str.size
-        @cache.merge!(JSON.parse(file_str).to_hash)
+        data_hash.merge!(JSON.parse(file_str).to_hash)
       end
     rescue JSON::ParserError => ex
       if file_string_size == 0
@@ -157,22 +162,58 @@ class ExchangeRateHistory::Source
         raise LocalSourceError, "#{ex}"
       end
     end
+    return data_hash
   end
 
 
-  def update_store
+  def update_store(source_data_hash)
+    if @local_file_flag
+      existing_data = load_from_store
+      existing_data.merge!(source_data_hash)
+      File.open(@local_store_abs_path, "w") do |f|
+        f << existing_data.to_json
+      end
+    else
+      # Create a new store
+      File.open(@local_store_abs_path, "w") do |f|
+        f << source_data_hash.to_json
+      end
+    end
+    # update the file flags again since we may have created a local store
+    update_file_status
   end
 
 
   def update_cache
     # Get the most up to date data that is reachable
+    update_file_status
     if remote_file_flag
-      get
-      update_store
-      load_cache_from_store
+      response = get
+      # :source_rate_parser must be implemented in child class
+      update_store(source_rate_parser(response))
+      @cache = load_from_store
     else
-      load_cahe_from_store
+      @cache = load_from_store
     end
   end
-  
+
+
+  def get_rate_at(time_str, to_currency, from_currency = @source_counter_currency)
+    # N.B since an exchnage would never offer the inverse
+    # of their selling price as their buying price then
+    # calculating any rate where from_currency
+    # is not the source_counter_currency should be forbidden.
+    if to_currency == from_currency
+      return "1.00"
+    elsif from_currency == @source_counter_currency
+      return @cache.fetch(time_str.iso8601).fetch(to_currency)
+    elsif to_currency == @source_counter_currency
+      value_of_from = 1.0/@cache.fetch(time_str.iso8601).fetch(from_currency).to_f
+      return value_of_from.to_s
+    else
+      value_of_from = 1.0/@cache.fetch(time_str.iso8601).fetch(from_currency).to_f
+      pair_rate = value_of_from * @cache.fetch(time_str.iso8601).fetch(to_currency).to_f
+      return pair_rate.to_s
+    end
+  end
 end
