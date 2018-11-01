@@ -142,7 +142,6 @@ class ExchangeRateHistory::Source
     #
     # This method should end with:
     # return source_data_hash
-    return {}
   end
 
 

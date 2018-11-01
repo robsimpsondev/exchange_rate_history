@@ -1,5 +1,5 @@
 # exchange_rate_history
-Ruby gem for storing and calculating historical exchange rates. Integrates with the Money gem.
+Ruby gem for storing and calculating historical exchange rates.
 
 
 ## Deployment
@@ -41,17 +41,17 @@ The class`ExchangeRateHistory::Source` represents a single source of exchange ra
 
 The ECB source has a base currency of `'EUR'`, to which all of its rates are relative.
 
-If an alternative data provider is used the source `base_currency` must be set appropriately.
+If an alternative data provider is used the source `source_counter_currency` must be set appropriately.
 
 The `Source` object and its child classes work using the following methods:
 ```
-irb> source = ExchangeRateHistory::Source.new(source_url, abs_local_file_path, base_currency)  # initialize
-irb> source.check_local   # checks for local data file at abs_local_file_path
+irb> source = ExchangeRateHistory::Source.new(source_url, local_store_abs_path, source_counter_currency)  # initialize
+irb> source.check_local   # checks for local data file at local_store_abs_path
 irb> source.load          # reads the saved data from disk into volatile memory (the "cache")
 irb> source.check_remote  # checks a successful response is available from source_url
 irb> source.get           # goes to the source url and gets the response
 irb> source.update        # updates data feed using source_url response
-irb> source.save          # writes feed data to abs_local_file_path
+irb> source.save          # writes feed data to local_store_abs_path
 ```
 
 The default implementation of `source.save` will create a data file in `data/` called `<Source.name>_exchange_rate_data.xml` from which data will be loaded during source initialization, if possible.
@@ -65,4 +65,4 @@ Each source object *must* also have a `:source_rate_parser` method defined, that
 ```
 which is used by `source.update`.
 
-Persistant data is saved in XML format on disk at `abs_local_file_path` and is loaded into to a Hash when the library class method `ExchangeRateHistory.init_source()` is called.
+Persistant data is saved in XML format on disk at `local_store_abs_path` and is loaded into to a Hash when the library class method `ExchangeRateHistory.init_source()` is called.
