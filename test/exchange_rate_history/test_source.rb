@@ -1,6 +1,7 @@
 require 'resolv'
 require 'minitest/autorun'
 
+
 require 'exchange_rate_history/source'
 
 
@@ -15,16 +16,18 @@ class ExchangeRateHistory::Source
 end
 
 
-# Make sure the following file exists before testing
 this_files_dir = File.dirname(__FILE__)
-TEST_ABS_LOCAL_FILE_PATH_NO_DATA = this_files_dir + '/source_fixtures/empty_data_file'
-TEST_ABS_LOCAL_FILE_PATH_GOOD_DATA = this_files_dir + '/source_fixtures/Source.json'
-TEST_ABS_LOCAL_FILE_PATH_BAD_DATA = this_files_dir + '/source_fixtures/Source.json_corrupted'
+TEST_LOCAL_STORE_ABS_PATH_NO_DATA = this_files_dir + '/source_fixtures/empty_data_file'
+TEST_LOCAL_STORE_ABS_PATH_BAD_DATA = this_files_dir + '/source_fixtures/Source.json_corrupted'
 TEST_TEMP_FILE = this_files_dir + '/source_fixtures/temp'  # Careful, this gets removed from the filesystem
 
-TEST_SOURCE_URL = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml"
+# This file contains a sample from ECB feed
+TEST_LOCAL_STORE_ABS_PATH_GOOD_DATA = this_files_dir + '/source_fixtures/Source.json'
+TEST_DATE_IN_SOURCE_JSON = Date.parse("2018-10-30")
 
-TEST_BASE_CURRENCY = 'XXX'
+# This is the feed used for testing
+TEST_SOURCE_URL = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml"
+TEST_COUNTER_CURRENCY = 'EUR'
 
 
 # Temporarily redirects STDOUT and STDERR to /dev/null
@@ -55,8 +58,8 @@ class TestSource < Minitest::Test
 
   def test_check_local_true_for_existing_file
     source = ExchangeRateHistory::Source.new(TEST_SOURCE_URL,
-      TEST_BASE_CURRENCY,
-      TEST_ABS_LOCAL_FILE_PATH_NO_DATA
+      TEST_COUNTER_CURRENCY,
+      TEST_LOCAL_STORE_ABS_PATH_NO_DATA
     )
     assert source.check_local
     assert source.local_file_flag
@@ -67,8 +70,8 @@ class TestSource < Minitest::Test
     bad_local_source = suppress_output do
       ExchangeRateHistory::Source.new(
         TEST_SOURCE_URL,
-        'a/file/that/doesnt_exist/anywhere_at.all',
-        TEST_BASE_CURRENCY
+        TEST_COUNTER_CURRENCY,
+        'no-such.file',
       )
     end
     assert_raises(LocalSourceNotFoundError) do
@@ -80,8 +83,8 @@ class TestSource < Minitest::Test
   def test_check_remote_success_returns_true
     source = ExchangeRateHistory::Source.new(
       TEST_SOURCE_URL,
-      TEST_BASE_CURRENCY,
-      TEST_ABS_LOCAL_FILE_PATH_NO_DATA
+      TEST_COUNTER_CURRENCY,
+      TEST_LOCAL_STORE_ABS_PATH_NO_DATA
     )
     # first check we have the internet for the tests
     if internet_connection?
@@ -102,8 +105,8 @@ class TestSource < Minitest::Test
     bad_remote_source = suppress_output do
       ExchangeRateHistory::Source.new(
         'https://this/doesnt/exist/file.RANDOM_10375617',
-        TEST_BASE_CURRENCY,
-        TEST_ABS_LOCAL_FILE_PATH_NO_DATA
+        TEST_COUNTER_CURRENCY,
+        TEST_LOCAL_STORE_ABS_PATH_NO_DATA
       )
     end
     assert_raises(RemoteSourceError) do
@@ -116,8 +119,8 @@ class TestSource < Minitest::Test
     no_local_source = suppress_output do
       ExchangeRateHistory::Source.new(
         TEST_SOURCE_URL,
-        TEST_ABS_LOCAL_FILE_PATH_NO_DATA + "_no_such_file",
-        TEST_BASE_CURRENCY
+        TEST_COUNTER_CURRENCY,
+        "no-such.file",
       )
     end
     assert_equal false, no_local_source.local_file_flag
@@ -128,8 +131,8 @@ class TestSource < Minitest::Test
   def test_get_succeeds_with_good_remote_url
     source = ExchangeRateHistory::Source.new(
       TEST_SOURCE_URL,
-      TEST_BASE_CURRENCY,
-      TEST_ABS_LOCAL_FILE_PATH_NO_DATA
+      TEST_COUNTER_CURRENCY,
+      TEST_LOCAL_STORE_ABS_PATH_NO_DATA
     )
     source.get
   end
@@ -139,8 +142,8 @@ class TestSource < Minitest::Test
     bad_remote_source = suppress_output do
       ExchangeRateHistory::Source.new(
         'https://this/doesnt/exist/file.RANDOM_10375617',
-        TEST_BASE_CURRENCY,
-        TEST_ABS_LOCAL_FILE_PATH_NO_DATA,
+        TEST_COUNTER_CURRENCY,
+        TEST_LOCAL_STORE_ABS_PATH_NO_DATA,
       )
     end
     assert_raises(Exception) do
@@ -152,8 +155,8 @@ class TestSource < Minitest::Test
   def test_load_succeeds_on_good_local_file
     source = ExchangeRateHistory::Source.new(
       TEST_SOURCE_URL,
-      TEST_BASE_CURRENCY,
-      TEST_ABS_LOCAL_FILE_PATH_GOOD_DATA
+      TEST_COUNTER_CURRENCY,
+      TEST_LOCAL_STORE_ABS_PATH_GOOD_DATA
     )
     data_hash = source.load_from_store
     refute_empty data_hash
@@ -163,8 +166,8 @@ class TestSource < Minitest::Test
   def test_load_fails_with_empty_local_data_raises_local_source_error
     source = ExchangeRateHistory::Source.new(
       TEST_SOURCE_URL,
-      TEST_BASE_CURRENCY,
-      TEST_ABS_LOCAL_FILE_PATH_NO_DATA
+      TEST_COUNTER_CURRENCY,
+      TEST_LOCAL_STORE_ABS_PATH_NO_DATA
     )
     assert_raises(LocalSourceError) do
       source.load_from_store
@@ -176,11 +179,12 @@ class TestSource < Minitest::Test
     source = suppress_output do
       ExchangeRateHistory::Source.new(
         TEST_SOURCE_URL,
-        TEST_BASE_CURRENCY,
+        TEST_COUNTER_CURRENCY,
         TEST_TEMP_FILE
       )
     end
     source.update_store({"test" => "hash"})
+    assert_equal true, source.local_file_flag
     pn = Pathname.new(source.local_store_abs_path)
     assert_equal true, pn.exist?
     `rm #{TEST_TEMP_FILE}`
@@ -196,7 +200,7 @@ class TestSource < Minitest::Test
     # init object
     source = ExchangeRateHistory::Source.new(
       TEST_SOURCE_URL,
-      TEST_BASE_CURRENCY,
+      TEST_COUNTER_CURRENCY,
       TEST_TEMP_FILE
     )
 
@@ -223,14 +227,14 @@ class TestSource < Minitest::Test
     # init object
     source = ExchangeRateHistory::Source.new(
       TEST_SOURCE_URL,
-      TEST_BASE_CURRENCY,
+      TEST_COUNTER_CURRENCY,
       TEST_TEMP_FILE
     )
 
-    # update with same data
+    # update with new data
     source.update_store({"second" => "hashhh"})
 
-    # assert no change
+    # assert changes
     file_contents = ""
     File.open(TEST_TEMP_FILE, "r") do |f|
       assert f.read == {"test" => "hash", "second" => "hashhh"}.to_json
@@ -246,11 +250,57 @@ class TestSource < Minitest::Test
       source = suppress_output do
         ExchangeRateHistory::Source.new(
         "https://this/doesnt/exist/file.RANDOM_10375617",
-        "no-such.file",
-        TEST_BASE_CURRENCY
+        TEST_COUNTER_CURRENCY,
+        'no-such.file'
       )
       end
     end
+  end
+
+
+  def test_get_rate_at_all_paths
+    source =  suppress_output do
+      ExchangeRateHistory::Source.new(
+        "https://this/doesnt/exist/file.RANDOM_10375617",
+        TEST_COUNTER_CURRENCY,
+        TEST_LOCAL_STORE_ABS_PATH_GOOD_DATA
+      )
+    end
+
+    suppress_output do
+      source.update_cache
+    end
+
+    assert_equal "1.00", source.get_rate_at(TEST_DATE_IN_SOURCE_JSON, 'EUR')
+
+    assert_equal "1.00", source.get_rate_at(TEST_DATE_IN_SOURCE_JSON, 'USD', 'USD')
+
+    source.get_rate_at(TEST_DATE_IN_SOURCE_JSON, 'USD')
+    source.get_rate_at(TEST_DATE_IN_SOURCE_JSON, 'JPY')
+    source.get_rate_at(TEST_DATE_IN_SOURCE_JSON, 'JPY', 'EUR')
+    source.get_rate_at(TEST_DATE_IN_SOURCE_JSON, 'EUR', 'JPY')
+    source.get_rate_at(TEST_DATE_IN_SOURCE_JSON, 'JPY', 'USD')
+
+    assert_raises(KeyError) do
+      source.get_rate_at(Date.today, 'USD')
+    end
+
+    assert_raises(KeyError) do
+      source.get_rate_at(Date.parse("1900-01-01"), 'USD')
+    end
+
+    assert_raises(KeyError) do
+      source.get_rate_at(TEST_DATE_IN_SOURCE_JSON, 'XXX')
+    end
+    
+    assert_raises(KeyError) do
+      source.get_rate_at(TEST_DATE_IN_SOURCE_JSON, 'USD', 'XXX')
+    end
+
+    assert_raises(KeyError) do
+      source.get_rate_at(TEST_DATE_IN_SOURCE_JSON, 'XXX', 'USD')
+    end
+
   end
 
 end

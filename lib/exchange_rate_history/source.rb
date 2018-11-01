@@ -199,10 +199,11 @@ class ExchangeRateHistory::Source
 
 
   def get_rate_at(time_str, to_currency, from_currency = @source_counter_currency)
-    # N.B since an exchange would never offer the inverse
+    # N.B: since an exchange would never offer the inverse
     # of their selling price as their buying price then
     # calculating any rate where from_currency
-    # is not the source_counter_currency should really be forbidden.
+    # is not the source_counter_currency should really be forbidden,
+    # unless we are dealing with reference rates.
     if to_currency == from_currency
       return "1.00"
     elsif from_currency == @source_counter_currency
