@@ -1,13 +1,10 @@
-task default: [:build, :install, :test]
+task default: [:build, :test]
 
 # Specifiy version to install from .gem
 VERSION = "0.0.1"
 
 task :build do
   `gem build exchange_rate_history.gemspec`
-end
-
-task :install do
   `sudo gem install exchange_rate_history-#{VERSION}.gem`
 end
 

@@ -12,7 +12,7 @@ class ECB90Day < ExchangeRateHistory::Source
   def initialize(local_store_abs_path = nil)
     unless local_store_abs_path
       local_store_abs_path = Dir.pwd + "/ECB90Day_exchange_rate_history.json"
-      $stderr.puts "Source data store assumed to be at #{local_store_abs_path}"
+      $stderr.puts "WARNING: Source data store assumed to be at #{local_store_abs_path}"
     end
     super(
       source_url = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml",

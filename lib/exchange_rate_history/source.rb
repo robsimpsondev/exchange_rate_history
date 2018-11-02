@@ -111,8 +111,8 @@ class ExchangeRateHistory::Source
     # This is only Ok if we have a local file.
     begin
       check_remote
-    rescue RemoteSourceError => ex
-      $stderr.puts "Remote source could not be reached."
+    rescue RuntimeError => ex
+      $stderr.puts "Remote source could not be reached: #{ex}"
       unless @local_file_flag
         raise "Neither local nor remote data could be accessed"
       end
@@ -197,7 +197,8 @@ class ExchangeRateHistory::Source
   end
 
 
-  def get_rate_at(time_str, to_currency, from_currency = @source_counter_currency)
+  def get_rate_at(date_obj, to_currency, from_currency = @source_counter_currency)
+    # 
     # N.B: since an exchange would never offer the inverse
     # of their selling price as their buying price then
     # calculating any rate where from_currency
@@ -206,13 +207,13 @@ class ExchangeRateHistory::Source
     if to_currency == from_currency
       return "1.00"
     elsif from_currency == @source_counter_currency
-      return @cache.fetch(time_str.iso8601).fetch(to_currency)
+      return @cache.fetch(date_obj.iso8601).fetch(to_currency)
     elsif to_currency == @source_counter_currency
-      value_of_from = 1.0/@cache.fetch(time_str.iso8601).fetch(from_currency).to_f
+      value_of_from = 1.0/@cache.fetch(date_obj.iso8601).fetch(from_currency).to_f
       return value_of_from.to_s
     else
-      value_of_from = 1.0/@cache.fetch(time_str.iso8601).fetch(from_currency).to_f
-      pair_rate = value_of_from * @cache.fetch(time_str.iso8601).fetch(to_currency).to_f
+      value_of_from = 1.0/@cache.fetch(date_obj.iso8601).fetch(from_currency).to_f
+      pair_rate = value_of_from * @cache.fetch(date_obj.iso8601).fetch(to_currency).to_f
       return pair_rate.to_s
     end
   end
