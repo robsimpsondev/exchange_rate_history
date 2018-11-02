@@ -6,6 +6,13 @@ class ExchangeRateHistory
 
 
     def init_source(source_class_def = nil, source_data_store_path = nil)
+      # Parameters
+      # source_class_def, Hash:
+      #    {:file_name => "FILE_NAME_IN_SOURCES_DIR",
+      #     :class_name => "CLASS_NAME_IN_THAT_FILE"}
+      #
+      # source_data_store_path, String:
+      #    "path/to/the/store.json"
 
       puts "ExchangeRateHistory: Initializing exchange rate source..."
 

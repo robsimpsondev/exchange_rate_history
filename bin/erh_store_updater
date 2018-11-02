@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby
+
+# This should have a description, argument specification and CL argument checking, and tests, but I haven't had the time.
+
+puts "Updating source of class #{ARGV[0]}"
+
+puts "Class definition in /exchange_rate_history/sources/#{ARGV[1]}"
+
+puts "Store location at #{ARGV[2]}"
+
+
+source_class_def = {:class_name => ARGV[0],
+                    :file_name  => ARGV[1] }
+
+source_data_store_path = ARGV[2]
+
+path = "../lib/exchange_rate_history/sources/#{source_class_def[:file_name]}"
+require_relative "#{path}"
+source = eval("#{source_class_def[:class_name]}.new(source_data_store_path)")
+
+source.update_store
