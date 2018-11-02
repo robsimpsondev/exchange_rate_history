@@ -63,6 +63,7 @@ which is used by the source's `:update_store` method.
 
 Persistent data is saved in JSON format on disk at `local_store_abs_path` and is loaded into a Hash when the library class method `ExchangeRateHistory.init_source()` or `ExchangeRate.init_source()` is called (both classes are the same). The default implementation will create a local data store in the working directory.
 
+
 ## Notes on exchange rates.
 
 It is assumed that the exchange rates manipulated using this library are reference rates; this is the case for the default implementation - the ECB's 90 day feed.
@@ -70,3 +71,7 @@ It is assumed that the exchange rates manipulated using this library are referen
 Therefore, this implementation allows cross-rates to be calculated from a single source in currencies other than the source's counter currency.
 
 In general this may not be the case (and that is why rates are returned as strings in the current implementation).
+
+
+## Scheduled updates
+

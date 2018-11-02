@@ -170,7 +170,7 @@ class TestSource < Minitest::Test
         TEST_TEMP_FILE
       )
     end
-    source.update_store({"test" => "hash"})
+    source.update_store
     assert_equal true, source.local_file_flag
     pn = Pathname.new(source.local_store_abs_path)
     assert_equal true, pn.exist?
@@ -192,7 +192,7 @@ class TestSource < Minitest::Test
     )
 
     # update with same data
-    source.update_store({"test" => "hash"})
+    source.update_store
 
     # assert no change
     file_contents = ""

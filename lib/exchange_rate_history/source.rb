@@ -4,6 +4,7 @@ require 'net/http'
 require 'open-uri'
 require 'json'
 
+
 require 'exchange_rate_history'
 
 
@@ -165,7 +166,17 @@ class ExchangeRateHistory::Source
   end
 
 
-  def update_store(source_data_hash)
+  def update_store(data_hash = nil)
+
+    # if we're not specifying data to add go to the source
+    unless data_hash
+      source_response = get()
+      # :source_rate_parser must be implemented in child class
+      source_data_hash = source_rate_parser(source_response)
+    else
+      source_data_hash = data_hash
+    end
+
     if @local_file_flag
       existing_data = load_from_store
       existing_data.merge!(source_data_hash)
@@ -187,9 +198,8 @@ class ExchangeRateHistory::Source
     # Get the most up to date data that is reachable
     update_file_status
     if remote_file_flag
-      response = get
       # :source_rate_parser must be implemented in child class
-      update_store(source_rate_parser(response))
+      update_store
       @cache = load_from_store
     else
       @cache = load_from_store
