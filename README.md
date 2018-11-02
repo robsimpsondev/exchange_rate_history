@@ -1,6 +1,7 @@
 # exchange_rate_history
 Ruby gem for storing and calculating historical exchange rates.
 
+This is my first time working with Ruby, so please be constructive in your criticism ;).
 
 ## Deployment
 

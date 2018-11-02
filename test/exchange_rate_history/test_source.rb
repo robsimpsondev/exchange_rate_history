@@ -3,17 +3,10 @@ require 'minitest/autorun'
 
 
 require 'exchange_rate_history/source'
+require_relative 'helpers.rb'
 
 
 # TODO: remove network dependency from testing and stub relevent libraries
-
-
-# Stub method defined in child classes
-class ExchangeRateHistory::Source
-  def source_rate_parser(an_arg)
-    return {"test" => "hash"}
-  end
-end
 
 
 this_files_dir = File.dirname(__FILE__)
@@ -30,17 +23,11 @@ TEST_SOURCE_URL = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.
 TEST_COUNTER_CURRENCY = 'EUR'
 
 
-# Temporarily redirects STDOUT and STDERR to /dev/null
-# but does print exceptions should they occur.
-# https://gist.github.com/moertel/11091573
-def suppress_output
-  original_stdout, original_stderr = $stdout.clone, $stderr.clone
-  $stderr.reopen File.new('/dev/null', 'w')
-  $stdout.reopen File.new('/dev/null', 'w')
-  yield
-ensure
-  $stdout.reopen original_stdout
-  $stderr.reopen original_stderr
+# Stub :source_rate_parser as it is only defined in child classes.
+class ExchangeRateHistory::Source
+  def source_rate_parser(an_arg)
+    return {"test" => "hash"}
+  end
 end
 
 
