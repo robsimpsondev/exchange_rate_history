@@ -23,6 +23,8 @@ Tests are ran on installation and can be re-ran using `rake`, i.e.
 $ rake test
 ```
 
+At present an Internet connection is required for testing.
+
 
 ## Usage
 
