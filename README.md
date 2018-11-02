@@ -41,6 +41,12 @@ puts "1.00 Euro yesterday was worth #{ExchangeRate.at(Date.today-1, 'USD')} Doll
 puts "1.00 Euro thirty days ago was worth #{ExchangeRate.at(Date.today-30, 'JPY')} Yen."
 puts "1.00 Yen thirty days ago was worth #{ExchangeRate.at(Date.today-30, 'EUR', 'JPY')} Euros."
 puts "1.00 Dollar thirty days ago was worth #{ExchangeRate.at(Date.today-30, 'JPY', 'USD')} Yen."
+
+# Update store, if you need to
+ExchangeRate.source.update_store
+
+# Update cache (this will update the store too if possible)
+ExchangeRate.source.update_cache
 ```
 
 
