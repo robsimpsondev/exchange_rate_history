@@ -198,7 +198,6 @@ class ExchangeRateHistory::Source
 
 
   def get_rate_at(date_obj, to_currency, from_currency = @source_counter_currency)
-    # 
     # N.B: since an exchange would never offer the inverse
     # of their selling price as their buying price then
     # calculating any rate where from_currency
