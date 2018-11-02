@@ -64,6 +64,21 @@ which is used by the source's `:update_store` method.
 Persistent data is saved in JSON format on disk at `local_store_abs_path` and is loaded into a Hash when the library class method `ExchangeRateHistory.init_source()` or `ExchangeRate.init_source()` is called (both classes are the same). The default implementation will create a local data store in the working directory.
 
 
+## Adding a source
+
+See `lib/exchange_rate_history/sources/` for an example. Make sure you add the Source's .rb file to `exchange_rate_history.gemspec`.
+
+
+## Scheduled updates
+
+A command line tool that loads and updates a source data store is provided in `bin/erh_store_updater` (very rough at the moment).
+
+The required arguments are the Store's class name, the file it is defined in relative to the `lib/exchange_rate_history/stores/` dir, and the path to the store itself, e.g:
+```
+$ ./bin/erh_store_updater ECB90Day ECB90Day.rb example/ECB90Day_exchange_rate_history.json
+```
+
+
 ## Notes on exchange rates.
 
 It is assumed that the exchange rates manipulated using this library are reference rates; this is the case for the default implementation - the ECB's 90 day feed.
@@ -71,7 +86,3 @@ It is assumed that the exchange rates manipulated using this library are referen
 Therefore, this implementation allows cross-rates to be calculated from a single source in currencies other than the source's counter currency.
 
 In general this may not be the case (and that is why rates are returned as strings in the current implementation).
-
-
-## Scheduled updates
-

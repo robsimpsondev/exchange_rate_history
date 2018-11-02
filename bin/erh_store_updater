@@ -19,3 +19,5 @@ require_relative "#{path}"
 source = eval("#{source_class_def[:class_name]}.new(source_data_store_path)")
 
 source.update_store
+
+puts "Store updated!"
