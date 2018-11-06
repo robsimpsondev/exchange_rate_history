@@ -62,10 +62,10 @@ If an alternative data provider is used the source `source_counter_currency` mus
 
 As mentioned above each sub-class of source *must* have a `:source_rate_parser` method defined that reads the source's response and returns a Hash of the form
 ```
-=> {'date_str1' => {'GBP' => 0.9, 'USD' => 1.1, 'XXX' => 100.123, ... },
-... 'date_str2' => {'GBP' => 0.9, 'USD' => 1.1, 'XXX' => 100.123, ... },
+=> {'date_str1' => {'GBP' => '0.9', 'USD' => '1.1', 'XXX' => '100.123', ... },
+... 'date_str2' => {'GBP' => '0.9', 'USD' => 1.1, 'XXX' => '100.123', ... },
 ...
-... 'date_strN' => {'GBP' => 0.9, 'USD' => 1.1, 'XXX' => 100.123, ... }}
+... 'date_strN' => {'GBP' => '0.9', 'USD' => '1.1', 'XXX' => '100.123', ... }}
 ```
 which is used by the source's `:update_store` method.
 
@@ -87,7 +87,7 @@ $ ./bin/erh_store_updater ECB90Day ECB90Day.rb example/ECB90Day_exchange_rate_hi
 ```
 
 
-## Notes on exchange rates.
+## Notes on exchange rates
 
 It is assumed that the exchange rates manipulated using this library are reference rates; this is the case for the default implementation - the ECB's 90 day feed.
 
