@@ -91,6 +91,4 @@ $ ./bin/erh_store_updater ECB90Day ECB90Day.rb example/ECB90Day_exchange_rate_hi
 
 It is assumed that the exchange rates manipulated using this library are reference rates; this is the case for the default implementation - the ECB's 90 day feed.
 
-Therefore, this implementation allows cross-rates to be calculated from a single source in currencies other than the source's counter currency.
-
-In general this may not be the case (and that is why rates are returned as strings in the current implementation).
+Therefore, this implementation allows cross-rates to be calculated from a single source in currencies other than the source's counter currency. In general this may not be the case.
