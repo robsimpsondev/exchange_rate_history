@@ -214,16 +214,14 @@ class ExchangeRateHistory::Source
     # is not the source_counter_currency should really be forbidden,
     # unless we are dealing with reference rates.
     if to_currency == from_currency
-      return "1.00"
+      1.00
     elsif from_currency == @source_counter_currency
-      return @cache.fetch(date_obj.iso8601).fetch(to_currency)
+      @cache.fetch(date_obj.iso8601).fetch(to_currency)
     elsif to_currency == @source_counter_currency
       value_of_from = 1.0/@cache.fetch(date_obj.iso8601).fetch(from_currency).to_f
-      return value_of_from.to_s
     else
       value_of_from = 1.0/@cache.fetch(date_obj.iso8601).fetch(from_currency).to_f
-      pair_rate = value_of_from * @cache.fetch(date_obj.iso8601).fetch(to_currency).to_f
-      return pair_rate.to_s
+      value_of_from * @cache.fetch(date_obj.iso8601).fetch(to_currency).to_f
     end
   end
 end
